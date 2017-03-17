@@ -1,0 +1,15 @@
+
+/bin/cp /home/kodiweera/Documents/fieldmap_correction/no_fmap/registration_without_fmap.fsf design.fsf
+
+/usr/share/fsl/5.0/bin/feat_model design
+
+mkdir .files;cp /usr/share/fsl/5.0/doc/fsl.css .files;cp -r /usr/share/fsl/5.0/doc/images .files/images
+
+/usr/share/fsl/5.0/bin/fsl_sub -T 10 -l logs -N feat0_init   /usr/share/fsl/5.0/bin/feat /home/kodiweera/Documents/fieldmap_correction/no_fmap/reg.feat/design.fsf -D /home/kodiweera/Documents/fieldmap_correction/no_fmap/reg.feat -I 1 -init
+3667217
+
+/usr/share/fsl/5.0/bin/fsl_sub -T 48 -l logs -N feat2_pre -j 3667217  /usr/share/fsl/5.0/bin/feat /home/kodiweera/Documents/fieldmap_correction/no_fmap/reg.feat/design.fsf -D /home/kodiweera/Documents/fieldmap_correction/no_fmap/reg.feat -I 1 -prestats
+3667684
+
+/usr/share/fsl/5.0/bin/fsl_sub -T 1 -l logs -N feat5_stop -j 3667684  /usr/share/fsl/5.0/bin/feat /home/kodiweera/Documents/fieldmap_correction/no_fmap/reg.feat/design.fsf -D /home/kodiweera/Documents/fieldmap_correction/no_fmap/reg.feat -stop
+3677217

@@ -1,0 +1,6 @@
+</pre><hr>Initialisation<br><pre>
+
+/usr/share/fsl/5.0/bin/fslmaths /home/kodiweera/Documents/fieldmap_correction/FUNCT prefiltered_func_data -odt float
+Total original volumes = 180
+
+/usr/share/fsl/5.0/bin/fslroi prefiltered_func_data example_func 90 1

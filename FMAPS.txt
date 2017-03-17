@@ -1,0 +1,6 @@
+Echo spacing (EPI) = 0.50 ms
+EPI TE = 28 ms
+unwarp dir = -y
+echo time difference (fieldmap) = 2.46 ms
+% signal loss
+

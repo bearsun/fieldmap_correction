@@ -1,0 +1,325 @@
+</pre><hr>Preprocessing:Stage 1<br><pre>
+
+/usr/share/fsl/5.0/bin/mainfeatreg -F 6.00 -d /home/kodiweera/Documents/fieldmap_correction/with_fmap/reg.feat -l /home/kodiweera/Documents/fieldmap_correction/with_fmap/reg.feat/logs/feat2_pre -R /home/kodiweera/Documents/fieldmap_correction/with_fmap/reg.feat/report_unwarp.html -r /home/kodiweera/Documents/fieldmap_correction/with_fmap/reg.feat/report_reg.html  -i /home/kodiweera/Documents/fieldmap_correction/with_fmap/reg.feat/example_func.nii.gz  -h /home/kodiweera/Documents/fieldmap_correction/STRUCT_brain -w  BBR -x 90 -s /usr/share/fsl/5.0/data/standard/MNI152_T1_2mm_brain -y 12 -z 90 -a /home/kodiweera/Documents/fieldmap_correction/FMAP_RADS -b /home/kodiweera/Documents/fieldmap_correction/FMAP_MAG_brain_ero -e 28.0 -f 10 -g 0.5 -p y- -w BBR
+Option -F ( FEAT version parameter ) selected with  argument "6.00"
+Option -d ( output directory ) selected with  argument "/home/kodiweera/Documents/fieldmap_correction/with_fmap/reg.feat"
+Option -l ( logfile )input with argument "/home/kodiweera/Documents/fieldmap_correction/with_fmap/reg.feat/logs/feat2_pre"
+Option -R ( html unwarping report ) selected with  argument "/home/kodiweera/Documents/fieldmap_correction/with_fmap/reg.feat/report_unwarp.html"
+Option -r ( html registration report ) selected with  argument "/home/kodiweera/Documents/fieldmap_correction/with_fmap/reg.feat/report_reg.html"
+Option -i ( main input ) input with argument "/home/kodiweera/Documents/fieldmap_correction/with_fmap/reg.feat/example_func.nii.gz"
+Option -h ( high-res structural image ) selected with  argument "/home/kodiweera/Documents/fieldmap_correction/STRUCT_brain"
+Option -w ( highres dof ) selected with  argument "BBR"
+Option -x ( highres search ) selected with  argument "90"
+Option -s ( standard image ) selected with  argument "/usr/share/fsl/5.0/data/standard/MNI152_T1_2mm_brain"
+Option -y ( standard dof ) selected with  argument "12"
+Option -z ( standard search ) selected with  argument "90"
+Option -a ( fieldmap image ) selected with  argument "/home/kodiweera/Documents/fieldmap_correction/FMAP_RADS"
+Option -b ( field ) selected with  argument "/home/kodiweera/Documents/fieldmap_correction/FMAP_MAG_brain_ero"
+Option -e ( echo time ) selected with  argument "28.0"
+Option -f ( signal loss Threshold ) selected with  argument "10"
+Option -g ( echo spacing ) selected with  argument "0.5"
+Option -p ( phase encoding direction ) selected with  argument "y-"
+Option -w ( highres dof ) selected with  argument "BBR"
+</pre><hr>Registration<br><pre>
+
+/bin/mkdir -p /home/kodiweera/Documents/fieldmap_correction/with_fmap/reg.feat/reg
+
+
+/usr/share/fsl/5.0/bin/fslmaths ../example_func EF_D_example_func
+
+
+/usr/share/fsl/5.0/bin/fslmaths /home/kodiweera/Documents/fieldmap_correction/FMAP_RADS FM_UD_fmap
+
+
+/usr/share/fsl/5.0/bin/fslmaths /home/kodiweera/Documents/fieldmap_correction/FMAP_MAG_brain_ero FM_UD_fmap_mag_brain
+
+
+/usr/share/fsl/5.0/bin/fslmaths /home/kodiweera/Documents/fieldmap_correction/FMAP_MAG_brain_ero  FM_UD_fmap_mag
+
+
+/usr/share/fsl/5.0/bin/fslstats FM_UD_fmap_mag_brain -V | awk '{ print $1 }'
+30090
+
+/usr/share/fsl/5.0/bin/fslstats FM_UD_fmap_mag_brain -v | awk '{ print $1 }'
+180224
+0.166959
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap_mag_brain -bin FM_UD_fmap_mag_brain_mask -odt short
+
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap -abs -bin -mas FM_UD_fmap_mag_brain_mask -mul -1 -add 1 -bin FM_UD_fmap_mag_brain_mask_inv
+
+
+/usr/share/fsl/5.0/bin/cluster -i FM_UD_fmap_mag_brain_mask_inv -t 0.5 --no_table -o FM_UD_fmap_mag_brain_mask_idx
+
+
+/usr/share/fsl/5.0/bin/fslstats FM_UD_fmap_mag_brain_mask_idx -R | awk '{ print $2 }'
+97.000000
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap_mag_brain_mask_idx -thr 97.000000 -bin -mul -1 -add 1 -bin -mas FM_UD_fmap_mag_brain_mask FM_UD_fmap_mag_brain_mask
+
+
+/usr/share/fsl/5.0/bin/fslstats FM_UD_fmap -k FM_UD_fmap_mag_brain_mask -P 50
+0.623569
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap -sub 0.623569 -mas FM_UD_fmap_mag_brain_mask FM_UD_fmap
+
+
+/usr/share/fsl/5.0/bin/fslstats FM_UD_fmap_mag_brain -P 98
+998.000000
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap_mag_brain -thr 499 -bin FM_UD_fmap_mag_brain_mask50
+
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap_mag_brain_mask -ero FM_UD_fmap_mag_brain_mask_ero
+
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap_mag_brain_mask_ero -add FM_UD_fmap_mag_brain_mask50 -thr 0.5 -bin FM_UD_fmap_mag_brain_mask
+
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap -mas FM_UD_fmap_mag_brain_mask FM_UD_fmap
+
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap_mag_brain -mas FM_UD_fmap_mag_brain_mask FM_UD_fmap_mag_brain
+
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap_mag_brain_mask -ero FM_UD_fmap_mag_brain_mask_ero
+
+
+/usr/share/fsl/5.0/bin/fugue --loadfmap=FM_UD_fmap --savefmap=FM_UD_fmap_tmp_fmapfilt --mask=FM_UD_fmap_mag_brain_mask --despike --despikethreshold=2.1
+
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap -sub FM_UD_fmap_tmp_fmapfilt -mas FM_UD_fmap_mag_brain_mask_ero -add FM_UD_fmap_tmp_fmapfilt FM_UD_fmap
+
+
+/bin/rm -f FM_UD_fmap_tmp_fmapfilt* FM_UD_fmap_mag_brain_mask_ero* FM_UD_fmap_mag_brain_mask50* FM_UD_fmap_mag_brain_i*
+
+
+/usr/share/fsl/5.0/bin/fslstats FM_UD_fmap -k FM_UD_fmap_mag_brain_mask -P 50
+0.000000
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap -sub 0.000000 -mas FM_UD_fmap_mag_brain_mask FM_UD_fmap
+
+
+/usr/share/fsl/5.0/bin/fslstats FM_UD_fmap -R | awk '{ print $1 }'
+-1233.419189
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap -sub -1233.419189 -add 10 -mas FM_UD_fmap_mag_brain_mask grot
+
+
+/usr/share/fsl/5.0/bin/fslstats grot -l 1 -p 0.1 -p 95
+621.720947 1418.642090
+
+/usr/share/fsl/5.0/bin/overlay 0 0 FM_UD_fmap_mag -a grot 621.720947 1418.642090 fmap+mag
+
+
+/usr/share/fsl/5.0/bin/slicer fmap+mag -s 3 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png fmap+mag.png; rm sl?.png
+
+
+/usr/share/fsl/5.0/bin/sigloss -i FM_UD_fmap --te=0.028 -m FM_UD_fmap_mag_brain_mask -s FM_UD_fmap_sigloss
+
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap_sigloss -mul FM_UD_fmap_mag_brain FM_UD_fmap_mag_brain_siglossed -odt float
+
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap_sigloss -thr 0.9 FM_UD_fmap_sigloss -odt float
+
+
+/usr/share/fsl/5.0/bin/overlay 1 0 FM_UD_fmap_mag_brain -a FM_UD_fmap_sigloss 0 1 FM_UD_sigloss+mag
+
+
+/usr/share/fsl/5.0/bin/slicer FM_UD_sigloss+mag -s 3 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png FM_UD_sigloss+mag.png; rm sl?.png
+
+
+/usr/share/fsl/5.0/bin/fslmaths /home/kodiweera/Documents/fieldmap_correction/STRUCT_brain highres
+
+
+/usr/share/fsl/5.0/bin/fslmaths /home/kodiweera/Documents/fieldmap_correction/STRUCT  highres_head
+
+
+/usr/share/fsl/5.0/bin/fslmaths /usr/share/fsl/5.0/data/standard/MNI152_T1_2mm_brain standard
+
+did not find file: example_func2highres.mat. Generating transform.
+
+/usr/share/fsl/5.0/bin/epi_reg --epi=example_func --t1=highres_head --t1brain=highres --out=example_func2highres --fmap=unwarp/FM_UD_fmap --fmapmag=unwarp/FM_UD_fmap_mag --fmapmagbrain=unwarp/FM_UD_fmap_mag_brain --echospacing=0.0005 --pedir=y-
+Running FAST segmentation FLIRT pre-alignment Registering fieldmap to structural Running BBR with fieldmap 0.303906 0.999970 0.007571 -0.001728 0.000000 -0.007502 0.999295 0.036800 0.000000 0.002006 -0.036786 0.999321 0.000000 1.189767 3.148457 -0.779550 1.000000 Making warp fields and applying registration to EPI series
+
+mv example_func2highres_fieldmap2str.mat unwarp/FM_UD_fmap_mag_brain2str.mat
+
+
+mv example_func2highres_fieldmaprads2epi.mat unwarp/FM_UD_fmap2epi.mat
+
+
+/usr/share/fsl/5.0/bin/immv example_func2highres_fieldmaprads2epi_shift unwarp/FM_UD_fmap2epi_shift
+
+
+/usr/share/fsl/5.0/bin/immv example_func2highres_fieldmap2str unwarp/FM_UD_fmap_mag_brain2str
+
+
+/usr/share/fsl/5.0/bin/fslstats FM_UD_fmap2epi_shift -R -P 1 -P 99
+-4.368627 6.444298 -2.643846 2.223825
+
+/usr/share/fsl/5.0/bin/flirt -ref ../example_func -in FM_UD_fmap_mag_brain -applyxfm -init FM_UD_fmap2epi.mat -out EF_UD_fmap_mag_brain
+
+
+/usr/share/fsl/5.0/bin/fslmaths FM_UD_fmap2epi_shift -mul -1 grot
+
+
+/usr/share/fsl/5.0/bin/overlay 1 0 EF_UD_fmap_mag_brain -a FM_UD_fmap2epi_shift 0.0001 2.223825 grot 0.0001 2.64385 EF_UD_shift+mag
+
+
+/usr/share/fsl/5.0/bin/slicer EF_UD_shift+mag -s 3 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png EF_UD_shift+mag.png; rm sl?.png
+
+
+/bin/cp /usr/share/fsl/5.0/etc/luts/ramp.gif .ramp.gif
+
+
+/bin/cp /usr/share/fsl/5.0/etc/luts/ramp2.gif .ramp2.gif
+
+
+overlay 0 0 FM_UD_fmap_mag_brain2str -a ../example_func2highres_fast_wmedge 0.001 5 fieldmap2edges
+
+
+/usr/share/fsl/5.0/bin/slicer fieldmap2edges -s 3 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png fieldmap2edges.png; rm sl?.png
+
+
+/usr/share/fsl/5.0/bin/slicer FM_UD_fmap_mag_brain2str ../highres -s 2 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png FM_UD_fmap_mag_brain2str1.png ; /usr/share/fsl/5.0/bin/slicer ../highres FM_UD_fmap_mag_brain2str -s 2 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png FM_UD_fmap_mag_brain2str2.png ; /usr/share/fsl/5.0/bin/pngappend FM_UD_fmap_mag_brain2str1.png - FM_UD_fmap_mag_brain2str2.png FM_UD_fmap_mag_brain2str.png; /bin/rm -f sl?.png FM_UD_fmap_mag_brain2str2.png
+
+
+/bin/rm FM_UD_fmap_mag_brain2str1.png
+
+
+/usr/share/fsl/5.0/bin/flirt -ref ../highres -in ../example_func -out example_func_distorted2highres -applyxfm -init ../example_func2highres.mat -interp trilinear
+
+
+/usr/share/fsl/5.0/bin/slicer example_func_distorted2highres ../highres -s 2 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png example_func_distorted2highres1.png ; /usr/share/fsl/5.0/bin/slicer ../highres example_func_distorted2highres -s 2 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png example_func_distorted2highres2.png ; /usr/share/fsl/5.0/bin/pngappend example_func_distorted2highres1.png - example_func_distorted2highres2.png example_func_distorted2highres.png; /bin/rm -f sl?.png example_func_distorted2highres2.png
+
+
+/bin/rm example_func_distorted2highres1.png
+
+
+/usr/share/fsl/5.0/bin/slicer ../example_func2highres ../highres -s 2 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png ../example_func2highres1.png ; /usr/share/fsl/5.0/bin/slicer ../highres ../example_func2highres -s 2 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png ../example_func2highres2.png ; /usr/share/fsl/5.0/bin/pngappend ../example_func2highres1.png - ../example_func2highres2.png ../example_func2highres.png; /bin/rm -f sl?.png ../example_func2highres2.png
+
+
+/bin/rm ../example_func2highres1.png
+
+
+/usr/share/fsl/5.0/bin/convert_xfm -inverse -omat highres2example_func.mat ../example_func2highres.mat 
+
+
+/usr/share/fsl/5.0/bin/applywarp -i ../example_func2highres -r ../example_func --premat=highres2example_func.mat -o example_func_undistorted
+
+
+/usr/share/fsl/5.0/bin/overlay  0 0 example_func_distorted2highres -a ../example_func2highres_fast_wmedge 0.001 10 grot
+
+
+/usr/share/fsl/5.0/bin/slicer grot -c -s 3 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png EF_D_edges.gif
+
+
+/usr/share/fsl/5.0/bin/overlay  0 0 ../example_func2highres -a ../example_func2highres_fast_wmedge 0.001 10 grot
+
+
+/usr/share/fsl/5.0/bin/slicer grot    -s 3 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png EF_U_edges.gif
+
+
+/usr/share/fsl/5.0/bin/whirlgif -o EF_UD_movie.gif -time 50 -loop 0 EF_D_edges.gif EF_U_edges.gif 2>&1; /bin/rm -f sla* slb* slc* sld* sle* slf* slg* slh* sli* slj* slk* sll* grot*
+whirlgif Rev 3.04 (c) 1997-1999 by Hans Dinsen-Hansen (c) 1995-1996 by Kevin Kadow (c) 1990-1993 by Mark Podlipec Processed 2 files.
+
+/usr/share/fsl/5.0/bin/imcp example_func_undistorted ../example_func
+
+
+/usr/share/fsl/5.0/bin/convert_xfm -inverse -omat highres2example_func.mat example_func2highres.mat
+
+
+/usr/share/fsl/5.0/bin/slicer example_func2highres highres -s 2 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png example_func2highres1.png ; /usr/share/fsl/5.0/bin/slicer highres example_func2highres -s 2 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png example_func2highres2.png ; /usr/share/fsl/5.0/bin/pngappend example_func2highres1.png - example_func2highres2.png example_func2highres.png; /bin/rm -f sl?.png example_func2highres2.png
+
+
+/bin/rm example_func2highres1.png
+
+did not find file: highres2standard.mat. Generating transform.
+
+/usr/share/fsl/5.0/bin/flirt -in highres -ref standard -out highres2standard -omat highres2standard.mat -cost corratio -dof 12 -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -interp trilinear 
+
+
+/usr/share/fsl/5.0/bin/convert_xfm -inverse -omat standard2highres.mat highres2standard.mat
+
+
+/usr/share/fsl/5.0/bin/slicer highres2standard standard -s 2 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png highres2standard1.png ; /usr/share/fsl/5.0/bin/slicer standard highres2standard -s 2 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png highres2standard2.png ; /usr/share/fsl/5.0/bin/pngappend highres2standard1.png - highres2standard2.png highres2standard.png; /bin/rm -f sl?.png highres2standard2.png
+
+
+/bin/rm highres2standard1.png
+
+
+/usr/share/fsl/5.0/bin/convert_xfm -omat example_func2standard.mat -concat highres2standard.mat example_func2highres.mat
+
+
+/usr/share/fsl/5.0/bin/flirt -ref standard -in example_func -out example_func2standard -applyxfm -init example_func2standard.mat -interp trilinear
+
+Found file: example_func2standard.mat.
+
+/usr/share/fsl/5.0/bin/convert_xfm -inverse -omat standard2example_func.mat example_func2standard.mat
+
+
+/usr/share/fsl/5.0/bin/slicer example_func2standard standard -s 2 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png example_func2standard1.png ; /usr/share/fsl/5.0/bin/slicer standard example_func2standard -s 2 -x 0.35 sla.png -x 0.45 slb.png -x 0.55 slc.png -x 0.65 sld.png -y 0.35 sle.png -y 0.45 slf.png -y 0.55 slg.png -y 0.65 slh.png -z 0.35 sli.png -z 0.45 slj.png -z 0.55 slk.png -z 0.65 sll.png ; /usr/share/fsl/5.0/bin/pngappend sla.png + slb.png + slc.png + sld.png + sle.png + slf.png + slg.png + slh.png + sli.png + slj.png + slk.png + sll.png example_func2standard2.png ; /usr/share/fsl/5.0/bin/pngappend example_func2standard1.png - example_func2standard2.png example_func2standard.png; /bin/rm -f sl?.png example_func2standard2.png
+
+
+/usr/share/fsl/5.0/bin/imcp ../example_func ../example_func_distorted
+
+
+/usr/share/fsl/5.0/bin/imcp example_func ../example_func
+
+</pre><hr>Preprocessing:Stage 2<br><pre>
+
+/usr/share/fsl/5.0/bin/mcflirt -in prefiltered_func_data -out prefiltered_func_data_mcf -mats -plots -reffile reg/unwarp/EF_D_example_func -rmsrel -rmsabs -spline_final
+
+/bin/mkdir -p mc ; /bin/mv -f prefiltered_func_data_mcf.mat prefiltered_func_data_mcf.par prefiltered_func_data_mcf_abs.rms prefiltered_func_data_mcf_abs_mean.rms prefiltered_func_data_mcf_rel.rms prefiltered_func_data_mcf_rel_mean.rms mc
+
+/usr/share/fsl/5.0/bin/fsl_tsplot -i prefiltered_func_data_mcf.par -t 'MCFLIRT estimated rotations (radians)' -u 1 --start=1 --finish=3 -a x,y,z -w 640 -h 144 -o rot.png 
+
+/usr/share/fsl/5.0/bin/fsl_tsplot -i prefiltered_func_data_mcf.par -t 'MCFLIRT estimated translations (mm)' -u 1 --start=4 --finish=6 -a x,y,z -w 640 -h 144 -o trans.png 
+
+/usr/share/fsl/5.0/bin/fsl_tsplot -i prefiltered_func_data_mcf_abs.rms,prefiltered_func_data_mcf_rel.rms -t 'MCFLIRT estimated mean displacement (mm)' -u 1 -w 640 -h 144 -a absolute,relative -o disp.png 
+
+/usr/share/fsl/5.0/bin/applywarp -i reg/unwarp/FM_UD_fmap_mag_brain_mask -r example_func --rel --premat=reg/unwarp/FM_UD_fmap_mag_brain2str.mat --postmat=reg/highres2example_func.mat -o reg/unwarp/EF_UD_fmap_mag_brain_mask --paddingsize=1
+
+cat mc/prefiltered_func_data_mcf.mat/MAT* > mc/prefiltered_func_data_mcf.cat
+
+/usr/share/fsl/5.0/bin/applywarp -i prefiltered_func_data --premat=mc/prefiltered_func_data_mcf.cat -r example_func -o prefiltered_func_data_unwarp -w reg/example_func2highres_warp.nii.gz --postmat=reg/highres2example_func.mat --rel --interp=spline --paddingsize=1
+
+/usr/share/fsl/5.0/bin/fslmaths prefiltered_func_data_unwarp -Tmean mean_func
+
+/usr/share/fsl/5.0/bin/bet2 mean_func mask -f 0.3 -n -m; /usr/share/fsl/5.0/bin/immv mask_mask mask
+
+/usr/share/fsl/5.0/bin/fslmaths prefiltered_func_data_unwarp -mas mask prefiltered_func_data_bet
+
+/usr/share/fsl/5.0/bin/fslstats prefiltered_func_data_bet -p 2 -p 98
+-0.000000 1048.637207 
+
+/usr/share/fsl/5.0/bin/fslmaths prefiltered_func_data_bet -thr 104.86372069999999 -Tmin -bin mask -odt char
+
+/usr/share/fsl/5.0/bin/fslstats prefiltered_func_data_unwarp -k mask -p 50
+774.795837 
+
+/usr/share/fsl/5.0/bin/fslmaths mask -dilF mask
+
+/usr/share/fsl/5.0/bin/fslmaths prefiltered_func_data_unwarp -mas mask prefiltered_func_data_thresh
+
+/usr/share/fsl/5.0/bin/fslmaths prefiltered_func_data_thresh -Tmean mean_func
+
+/usr/share/fsl/5.0/bin/susan prefiltered_func_data_thresh 581.09687775 2.1231422505307855 3 1 1 mean_func 581.09687775 prefiltered_func_data_smooth
+
+/usr/share/fsl/5.0/bin/fslmaths prefiltered_func_data_smooth -mas mask prefiltered_func_data_smooth
+
+/usr/share/fsl/5.0/bin/fslmaths prefiltered_func_data_smooth -mul 12.906625878011784 prefiltered_func_data_intnorm
+
+/usr/share/fsl/5.0/bin/fslmaths prefiltered_func_data_intnorm -Tmean tempMean
+
+/usr/share/fsl/5.0/bin/fslmaths prefiltered_func_data_intnorm -bptf 10.0 -1 -add tempMean prefiltered_func_data_tempfilt
+
+/usr/share/fsl/5.0/bin/imrm tempMean
+
+/usr/share/fsl/5.0/bin/fslmaths prefiltered_func_data_tempfilt filtered_func_data
+
+/usr/share/fsl/5.0/bin/fslmaths filtered_func_data -Tmean mean_func
+
+/bin/rm -rf prefiltered_func_data*
